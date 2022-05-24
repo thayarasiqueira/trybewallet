@@ -24,7 +24,7 @@ class Login extends React.Component {
   checkingEmail = (email) => {
     const array = email.split('');
     const findAt = array.find((e) => e === '@');
-    const getDot = email.endsWith('.com');
+    const getDot = email.includes('.com');
 
     if (findAt && getDot) return true;
 
