@@ -1,8 +1,60 @@
-import React from 'react';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { fetchCurrencies, fetchExpenses } from '../actions';
 
-class Form extends React.Component {
+class Form extends Component {
+  constructor() {
+    super();
+    this.state = {
+      expense: {},
+      id: 0,
+      value: 0,
+      description: '',
+      currency: 'USD',
+      method: 'Dinheiro',
+      tag: 'Alimentação',
+    };
+  }
+
+  componentDidMount() {
+    fetchCurrencies();
+  }
+
+  handleChange = ({ target }) => {
+    const { name } = target;
+
+    this.setState({
+      [name]: target.value,
+    }, () => {
+      const { id, value, description, currency, method, tag } = this.state;
+      this.setState({
+        expense: {
+          id,
+          value,
+          description,
+          currency,
+          method,
+          tag,
+        },
+      });
+    });
+  }
+
+  handleBtn = (event) => {
+    event.preventDefault();
+    const { addExpenses } = this.props;
+    const { expense, id } = this.state;
+    addExpenses(expense);
+    this.setState({
+      id: (id + 1),
+      value: 0,
+      description: '',
+    });
+  }
+
   render() {
+    const { value, description, currency, method, tag } = this.state;
     const { currencies } = this.props;
     return (
       <div>
@@ -14,6 +66,8 @@ class Form extends React.Component {
               type="text"
               id="value"
               data-testid="value-input"
+              value={ value }
+              onChange={ this.handleChange }
             />
           </label>
           <label htmlFor="description">
@@ -23,11 +77,18 @@ class Form extends React.Component {
               type="text"
               id="description"
               data-testid="description-input"
+              value={ description }
+              onChange={ this.handleChange }
             />
           </label>
           <label htmlFor="currency">
             Moeda:
-            <select id="currency">
+            <select
+              name="currency"
+              id="currency"
+              value={ currency }
+              onChange={ this.handleChange }
+            >
               { currencies.map((e, index) => (
                 <option key={ index } value={ e }>{ e }</option>
               ))}
@@ -36,34 +97,56 @@ class Form extends React.Component {
           <label htmlFor="method">
             Método de pagamento:
             <select
+              name="method"
               id="method"
               data-testid="method-input"
+              value={ method }
+              onChange={ this.handleChange }
             >
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Cartão de crédito">Cartão de crédito</option>
-              <option value="Cartão de débito">Cartão de débito</option>
+              <option>Dinheiro</option>
+              <option>Cartão de crédito</option>
+              <option>Cartão de débito</option>
             </select>
           </label>
           <label htmlFor="tag">
             <select
+              name="tag"
               id="tag"
               data-testid="tag-input"
+              value={ tag }
+              onChange={ this.handleChange }
             >
-              <option value="Alimentação">Alimentação</option>
-              <option value="Lazer">Lazer</option>
-              <option value="Trabalho">Trabalho</option>
-              <option value="Transporte">Transporte</option>
-              <option value="Saúde">Saúde</option>
+              <option>Alimentação</option>
+              <option>Lazer</option>
+              <option>Trabalho</option>
+              <option>Transporte</option>
+              <option>Saúde</option>
             </select>
           </label>
+          <button
+            type="submit"
+            onClick={ this.handleBtn }
+          >
+            Adicionar despesa
+          </button>
         </form>
       </div>
     );
   }
 }
 
+const mapStateToProps = (state) => ({
+  currencies: state.wallet.currencies,
+});
+const mapDispatchToProps = (dispatch) => ({
+  fetchCurrencies: () => dispatch(fetchCurrencies()),
+  addExpenses: (expenses) => dispatch(fetchExpenses(expenses)),
+
+});
+
 Form.propTypes = {
-  currencies: PropTypes.arrayOf([PropTypes.string.isRequired]).isRequired,
+  addExpenses: PropTypes.func.isRequired,
+  currencies: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
-export default Form;
+export default connect(mapStateToProps, mapDispatchToProps)(Form);
